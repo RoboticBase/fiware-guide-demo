@@ -8,6 +8,8 @@ from flask import Flask
 
 from src.utils import error_handler
 from src.utils import const
+from src.api import StartGuidanceAPI
+
 
 try:
     with open(const.LOGGING_JSON, "r") as f:
@@ -24,6 +26,7 @@ except FileNotFoundError:
 
 app = Flask(__name__)
 app.config.from_pyfile(const.CONFIG_CFG)
+app.add_url_rule('/notify/start-guidance/', view_func=StartGuidanceAPI.as_view(StartGuidanceAPI.NAME))
 app.register_blueprint(error_handler.blueprint)
 
 
