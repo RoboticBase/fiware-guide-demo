@@ -36,6 +36,14 @@ class StartGuidanceAPI(MethodView):
         if data is None or len(data.strip()) == 0:
             raise BadRequest()
 
+        current_state = orion.get_attrs(MOBILE_ROBOT_SERVICEPATH,
+                                        MOBILE_ROBOT_TYPE,
+                                        MOBILE_ROBOT_ID, 'r_state')['r_state']['value']
+
+        if current_state not in (' ', const.STATE_WAITING):
+            logger.debug(f'ignore start-guidance: current_state={current_state}')
+            return jsonify({'result': 'ignore'})
+
         tpl = current_app.jinja_env.get_template('mobile_robot_move_cmd.json.j2')
         data = tpl.render({'value': 'up'})
         orion.patch_attr(MOBILE_ROBOT_SERVICEPATH, MOBILE_ROBOT_TYPE, MOBILE_ROBOT_ID, data)
@@ -69,7 +77,7 @@ class UpdateMobileRobotStateAPI(MethodView):
         elif current_state == const.STATE_RETURNING and r_mode == const.MODE_STANDBY:
             next_state = const.STATE_WAITING
         else:
-            logger.debug(f'ignore this process: r_mode={r_mode}, current_state={current_state}')
+            logger.debug(f'ignore update-mobilerobot-state: r_mode={r_mode}, current_state={current_state}')
             return jsonify({'result': 'ignore'})
 
         now = datetime.utcnow()
@@ -99,7 +107,7 @@ class UpdateMobileRobotPosAPI(MethodView):
 
         d = math.sqrt(math.pow(LED_ON_X - x, 2) + math.pow(LED_ON_Y - y, 2))
         if current_state != const.STATE_GUIDING or d > NEIGHBOR_RADIUS:
-            logger.debug(f'ignore this pos: r_state={current_state}, current=({x}, {y}), '
+            logger.debug(f'ignore update-mobilerobot-pos: r_state={current_state}, current=({x}, {y}), '
                          f'target=({LED_ON_X}, {LED_ON_Y}), radius={NEIGHBOR_RADIUS}')
             return jsonify({'result': 'ignore'})
 
