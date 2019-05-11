@@ -62,9 +62,15 @@ def get_attrs(fiware_servicepath, entity_type, entity_id, attrs):
         raise OrionError(response.text, f'OrionError({response.reason})', response.json()['description'])
 
 
-def parse_attr_value(data, attr):
+def parse_attr_value(data, attr, t=None):
     data = __extract_attr_from_NGSI(data, attr)
-    return data['value']
+    if t is None:
+        return data['value']
+    else:
+        try:
+            return t(data['value'])
+        except ValueError as e:
+            raise OrionError(str(e), 'OrionError(AttrParseError)', str(e))
 
 
 def __extract_attr_from_NGSI(data, attr):
