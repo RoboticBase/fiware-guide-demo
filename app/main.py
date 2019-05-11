@@ -8,7 +8,7 @@ from flask import Flask
 
 from src.utils import error_handler
 from src.utils import const
-from src.api import StartGuidanceAPI, UpdateMobileRobotStateAPI, UpdateMobileRobotPosAPI
+from src.api import StartGuidanceAPI, UpdateMobileRobotStateAPI, UpdateMobileRobotPosAPI, FinishGuidanceAPI
 
 
 try:
@@ -32,6 +32,8 @@ app.add_url_rule('/notify/update-mobilerobot-state/',
                  view_func=UpdateMobileRobotStateAPI.as_view(UpdateMobileRobotStateAPI.NAME))
 app.add_url_rule('/notify/update-mobilerobot-pos/',
                  view_func=UpdateMobileRobotPosAPI.as_view(UpdateMobileRobotPosAPI.NAME))
+app.add_url_rule('/notify/finish-guidance/',
+                 view_func=FinishGuidanceAPI.as_view(FinishGuidanceAPI.NAME))
 app.register_blueprint(error_handler.blueprint)
 
 

@@ -116,3 +116,32 @@ class UpdateMobileRobotPosAPI(MethodView):
         orion.patch_attr(DEST_LED_SERVICEPATH, DEST_LED_TYPE, DEST_LED_ID, data)
 
         return jsonify({'result': 'ok'})
+
+
+class FinishGuidanceAPI(MethodView):
+    NAME = 'finish-guidance'
+
+    def post(self):
+        data = request.data.decode('utf-8')
+        logger.info(f'reqest data={data}')
+
+        if data is None or len(data.strip()) == 0:
+            raise BadRequest()
+
+        current_state = orion.get_attrs(MOBILE_ROBOT_SERVICEPATH,
+                                        MOBILE_ROBOT_TYPE,
+                                        MOBILE_ROBOT_ID, 'r_state')['r_state']['value']
+
+        if current_state != const.STATE_SUSPENDING:
+            logger.debug(f'ignore finish-guidance: current_state={current_state}')
+            return jsonify({'result': 'ignore'})
+
+        tpl = current_app.jinja_env.get_template('mobile_robot_move_cmd.json.j2')
+        data = tpl.render({'value': 'return'})
+        orion.patch_attr(MOBILE_ROBOT_SERVICEPATH, MOBILE_ROBOT_TYPE, MOBILE_ROBOT_ID, data)
+
+        tpl = current_app.jinja_env.get_template('dest_led_action_cmd.json.j2')
+        data = tpl.render({'value': 'off'})
+        orion.patch_attr(DEST_LED_SERVICEPATH, DEST_LED_TYPE, DEST_LED_ID, data)
+
+        return jsonify({'result': 'ok'})
