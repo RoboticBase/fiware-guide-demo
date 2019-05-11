@@ -18,3 +18,13 @@ MOBILE_ROBOT_ID = 'MOBILE_ROBOT_ID'
 
 # fiware
 DEFAULT_ORION_ENDPOINT = "http://127.0.0.1:1026"
+
+# r_mode
+MODE_NAVI = 'navi'
+MODE_STANDBY = 'standby'
+
+# r_state
+STATE_WAITING = 'waiting'
+STATE_GUIDING = 'guiding'
+STATE_SUSPENDING = 'suspending'
+STATE_RETURNING = 'returning'
