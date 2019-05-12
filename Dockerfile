@@ -17,11 +17,11 @@ RUN apk update && \
     apk del --purge .build && \
     rm -r /root/.cache
 
-COPY nginx.conf /etc/nginx/nginx.conf
-COPY flask-nginx.conf /etc/nginx/conf.d/flask-nginx.conf
-COPY uwsgi.ini /etc/uwsgi/uwsgi.ini
-COPY supervisord.conf /etc/supervisord.conf
-COPY entrypoint.sh /opt
+COPY docker-conf/nginx.conf /etc/nginx/nginx.conf
+COPY docker-conf/flask-nginx.conf /etc/nginx/conf.d/flask-nginx.conf
+COPY docker-conf/uwsgi.ini /etc/uwsgi/uwsgi.ini
+COPY docker-conf/supervisord.conf /etc/supervisord.conf
+COPY docker-conf/entrypoint.sh /opt
 
 RUN chmod a+x /opt/entrypoint.sh
 
