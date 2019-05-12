@@ -34,7 +34,7 @@ def patch_attr(fiware_servicepath, entity_type, entity_id, data):
 
     response = requests.patch(url, headers=headers, data=data)
     if 200 <= response.status_code and response.status_code < 300:
-        logger.debug(f'patch attr, url={url}, fiware_servicepath={fiware_servicepath}, data={data}')
+        logger.debug(f'patch attr, url={url}, fiware_servicepath={fiware_servicepath}, data={json.dumps(json.loads(data))}')
     else:
         raise OrionError(response.text, f'OrionError({response.reason})', response.json()['description'])
 
@@ -54,7 +54,7 @@ def get_attrs(fiware_servicepath, entity_type, entity_id, attrs):
     if 200 <= response.status_code and response.status_code < 300:
         try:
             data = response.json()
-            logger.debug(f'get attrs, url={url}, fiware_servicepath={fiware_servicepath}, data={data}')
+            logger.debug(f'get attrs, url={url}, fiware_servicepath={fiware_servicepath}, data={json.dumps(data)}')
             return data
         except json.JSONDecodeError as e:
             raise OrionError(str(e), 'OrionError(JSONDecodeError)', str(e))
