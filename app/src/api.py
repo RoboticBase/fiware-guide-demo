@@ -76,6 +76,19 @@ class UpdateMobileRobotStateAPI(MethodView):
             next_state = const.STATE_RETURNING
         elif current_state == const.STATE_RETURNING and r_mode == const.MODE_STANDBY:
             next_state = const.STATE_WAITING
+        elif current_state == const.STATE_GUIDING and r_mode == const.MODE_NAVI:
+            x = orion.parse_attr_value(data, 'x', float)
+            y = orion.parse_attr_value(data, 'y', float)
+            d = math.sqrt(math.pow(LED_ON_X - x, 2) + math.pow(LED_ON_Y - y, 2))
+            if d <= NEIGHBOR_RADIUS:
+                logger.debug(f'update-mobilerobot-state led on: r_state={current_state}, current=({x}, {y}), '
+                             f'target=({LED_ON_X}, {LED_ON_Y}), radius={NEIGHBOR_RADIUS}')
+                tpl = current_app.jinja_env.get_template('dest_led_action_cmd.json.j2')
+                data = tpl.render({'value': 'on'})
+                orion.patch_attr(DEST_LED_SERVICEPATH, DEST_LED_TYPE, DEST_LED_ID, data)
+                return jsonify({'result': 'led on'})
+            else:
+                return jsonify({'result': 'ignore'})
         else:
             logger.debug(f'ignore update-mobilerobot-state: r_mode={r_mode}, current_state={current_state}')
             return jsonify({'result': 'ignore'})
@@ -85,37 +98,7 @@ class UpdateMobileRobotStateAPI(MethodView):
         data = tpl.render({'value': next_state, 'datetime': now.strftime('%Y-%m-%dT%H:%M:%SZ')})
         orion.patch_attr(MOBILE_ROBOT_SERVICEPATH, MOBILE_ROBOT_TYPE, MOBILE_ROBOT_ID, data)
         logger.debug(f'update mobile robot state: r_mode={r_mode}, prev_state={current_state}, current_state={next_state}')
-        return jsonify({'result': 'ok'})
-
-
-class UpdateMobileRobotPosAPI(MethodView):
-    NAME = 'update-mobilerobot-pos'
-
-    def post(self):
-        data = request.data.decode('utf-8')
-        logger.info(f'reqest data={data}')
-
-        if data is None or len(data.strip()) == 0:
-            raise BadRequest()
-
-        x = orion.parse_attr_value(data, 'x', float)
-        y = orion.parse_attr_value(data, 'y', float)
-
-        current_state = orion.get_attrs(MOBILE_ROBOT_SERVICEPATH,
-                                        MOBILE_ROBOT_TYPE,
-                                        MOBILE_ROBOT_ID, 'r_state')['r_state']['value']
-
-        d = math.sqrt(math.pow(LED_ON_X - x, 2) + math.pow(LED_ON_Y - y, 2))
-        if current_state != const.STATE_GUIDING or d > NEIGHBOR_RADIUS:
-            logger.debug(f'ignore update-mobilerobot-pos: r_state={current_state}, current=({x}, {y}), '
-                         f'target=({LED_ON_X}, {LED_ON_Y}), radius={NEIGHBOR_RADIUS}')
-            return jsonify({'result': 'ignore'})
-
-        tpl = current_app.jinja_env.get_template('dest_led_action_cmd.json.j2')
-        data = tpl.render({'value': 'on'})
-        orion.patch_attr(DEST_LED_SERVICEPATH, DEST_LED_TYPE, DEST_LED_ID, data)
-
-        return jsonify({'result': 'ok'})
+        return jsonify({'result': 'update state'})
 
 
 class FinishGuidanceAPI(MethodView):
