@@ -78,15 +78,20 @@ class UpdateMobileRobotStateAPI(MethodView):
             next_state = const.STATE_WAITING
         elif current_state == const.STATE_GUIDING and r_mode == const.MODE_NAVI:
             x = orion.parse_attr_value(data, 'x', float)
-            y = orion.parse_attr_value(data, 'y', float)
-            d = math.sqrt(math.pow(LED_ON_X - x, 2) + math.pow(LED_ON_Y - y, 2))
+            d = LED_ON_X - x
             if d <= NEIGHBOR_RADIUS:
-                logger.debug(f'update-mobilerobot-state led on: r_state={current_state}, current=({x}, {y}), '
-                             f'target=({LED_ON_X}, {LED_ON_Y}), radius={NEIGHBOR_RADIUS}')
-                tpl = current_app.jinja_env.get_template('dest_led_action_cmd.json.j2')
-                data = tpl.render({'value': 'on'})
-                orion.patch_attr(DEST_LED_SERVICEPATH, DEST_LED_TYPE, DEST_LED_ID, data)
-                return jsonify({'result': 'led on'})
+                action_status = orion.get_attrs(DEST_LED_SERVICEPATH,
+                                                DEST_LED_TYPE,
+                                                DEST_LED_ID, 'action_status')['action_status']['value']
+                if action_status != const.CMD_PENDING_STATE:
+                    logger.info(f'update-mobilerobot-state led on: r_state={current_state}, current_x={x}, '
+                                f'target_x={LED_ON_X}, radius={NEIGHBOR_RADIUS}')
+                    tpl = current_app.jinja_env.get_template('dest_led_action_cmd.json.j2')
+                    data = tpl.render({'value': 'on'})
+                    orion.patch_attr(DEST_LED_SERVICEPATH, DEST_LED_TYPE, DEST_LED_ID, data)
+                    return jsonify({'result': 'led on'})
+                else:
+                    return jsonify({'result': 'ignore'})
             else:
                 return jsonify({'result': 'ignore'})
         else:
@@ -97,7 +102,7 @@ class UpdateMobileRobotStateAPI(MethodView):
         tpl = current_app.jinja_env.get_template('mobile_robot_update_state.json.j2')
         data = tpl.render({'value': next_state, 'datetime': now.strftime('%Y-%m-%dT%H:%M:%SZ')})
         orion.patch_attr(MOBILE_ROBOT_SERVICEPATH, MOBILE_ROBOT_TYPE, MOBILE_ROBOT_ID, data)
-        logger.debug(f'update mobile robot state: r_mode={r_mode}, prev_state={current_state}, current_state={next_state}')
+        logger.info(f'update mobile robot state: r_mode={r_mode}, prev_state={current_state}, current_state={next_state}')
         return jsonify({'result': 'update state'})
 
 

@@ -24,6 +24,7 @@ LED_ON_Y = 'LED_ON_Y'
 
 # fiware
 DEFAULT_ORION_ENDPOINT = "http://127.0.0.1:1026"
+CMD_PENDING_STATE = "PENDING"
 
 # r_mode
 MODE_NAVI = 'navi'
